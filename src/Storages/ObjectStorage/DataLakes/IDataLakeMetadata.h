@@ -23,6 +23,9 @@ public:
 
     virtual bool operator==(const IDataLakeMetadata & other) const = 0;
 
+    /// Return the version of the table snapshot, if available (for DeltaLake virtual column).
+    virtual size_t getVersion() const { return 0; }
+
     /// Return iterator to `data files`.
     using FileProgressCallback = std::function<void(FileProgress)>;
     virtual ObjectIterator iterate(

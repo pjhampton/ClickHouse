@@ -214,6 +214,24 @@ VirtualColumnsDescription getVirtualsForFileLikeStorage(
     for (const auto & item : getCommonVirtualsForFileLikeStorage())
         add_virtual(item, false);
 
+    // Add _delta_table_version for DeltaLake tables
+    if (is_data_lake)
+    {
+        // Try to detect if this is a DeltaLake table by checking the external metadata
+        if (context)
+        {
+            auto * storage = context->getCurrentStorage();
+            if (storage)
+            {
+                auto * metadata = storage->getExternalMetadata(context);
+                if (metadata && metadata->getVersion() > 0)
+                {
+                    add_virtual({"_delta_table_version", std::make_shared<DataTypeUInt64>()}, false);
+                }
+            }
+        }
+    }
+
     if (context->getSettingsRef()[Setting::use_hive_partitioning] && !is_data_lake)
     {
         const auto map = parseHivePartitioningKeysAndValues(path);

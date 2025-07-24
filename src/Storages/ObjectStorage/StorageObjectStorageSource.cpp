@@ -278,6 +278,26 @@ Chunk StorageObjectStorageSource::generate()
                  .etag = &(object_info->metadata->etag)},
                 read_context);
 
+            // Inject _delta_table_version if requested and available
+            for (const auto & virtual_column : read_from_format_info.requested_virtual_columns)
+            {
+                if (virtual_column.name == "_delta_table_version")
+                {
+                    size_t version = 0;
+                    if (read_context)
+                    {
+                        auto * storage = read_context->getCurrentStorage();
+                        if (storage)
+                        {
+                            auto * metadata = storage->getExternalMetadata(read_context);
+                            if (metadata)
+                                version = metadata->getVersion();
+                        }
+                    }
+                    chunk.addColumn(virtual_column.type->createColumnConst(chunk.getNumRows(), version)->convertToFullColumnIfConst());
+                }
+            }
+
 #if USE_PARQUET && USE_AWS_S3
             if (chunk_size && chunk.hasColumns())
             {

@@ -81,6 +81,11 @@ ReadFromFormatInfo DeltaLakeMetadataDeltaKernel::prepareReadingFromFormat(
     return info;
 }
 
+size_t DeltaLakeMetadataDeltaKernel::getVersion() const
+{
+    return table_snapshot->getVersion();
+}
+
 }
 
 #endif
